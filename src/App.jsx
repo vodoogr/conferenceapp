@@ -3,7 +3,22 @@
 // Reemplaza todos los MOCK_* por llamadas reales a la API
 // Auth real con Google OAuth + JWT
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  ArrowLeft,
+  Bot,
+  Check,
+  ChevronRight,
+  ListChecks,
+  MessageSquare,
+  Mic,
+  Pencil,
+  RefreshCw,
+  Save,
+  Send,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { auth, meetings, transcriptions, minutesApi, assistant, process } from './utils/api.js';
 import { useRecorder } from './hooks/useRecorder.js';
 
@@ -104,19 +119,18 @@ const Label = ({ children }) => (
 // ── Nav ───────────────────────────────────────────────────
 const Nav = ({ screen, go }) => {
   const tabs = [
-    { id:'meetings', label:'Reuniones', path:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01' },
-    { id:'recorder', label:'Grabar',    path:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8' },
-    { id:'assistant',label:'Asistente', path:'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+    { id:'meetings', label:'Reuniones', Icon:ListChecks },
+    { id:'recorder', label:'Grabar',    Icon:Mic },
+    { id:'assistant',label:'Asistente', Icon:MessageSquare },
   ];
   return (
     <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:C.surface, borderTop:`1px solid ${C.border}`, display:'flex', zIndex:100, paddingBottom:'env(safe-area-inset-bottom,8px)' }}>
       {tabs.map(t => {
         const active = screen === t.id || (t.id==='meetings' && ['meeting_detail','transcript','minutes_detail'].includes(screen));
+        const Icon = t.Icon;
         return (
           <button key={t.id} onClick={() => go(t.id)} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:'10px 4px 6px', background:'none', border:'none', cursor:'pointer', color:active?C.accent:C.dim, transition:'color .15s', fontSize:10, fontWeight:600, fontFamily:"'Syne',sans-serif" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d={t.path}/>
-            </svg>
+            <Icon size={20} strokeWidth={1.8} />
             {t.label}
           </button>
         );
@@ -140,7 +154,7 @@ const AuthScreen = () => (
   <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32, gap:32, background:`radial-gradient(ellipse at 50% 40%, ${C.accentGlow}, transparent 60%)` }}>
     <div style={{ textAlign:'center' }}>
       <div style={{ width:72, height:72, borderRadius:20, background:`linear-gradient(135deg,${C.accent},${C.purple})`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', boxShadow:`0 20px 60px ${C.accentGlow}` }}>
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+        <Mic size={34} color="#fff" strokeWidth={1.8} />
       </div>
       <h1 style={{ fontSize:36, fontWeight:800, fontFamily:"'Syne',sans-serif", color:C.text, marginBottom:8, letterSpacing:'-.02em' }}>
         Conference<span style={{ color:C.accent }}>App</span>
@@ -251,7 +265,7 @@ const MeetingsScreen = ({ go, setMeeting }) => {
                     {m.duration_sec && <span style={{ fontSize:12, color:C.muted }}>⏱ {fmtDuration(m.duration_sec)}</span>}
                   </div>
                 </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.dim} strokeWidth="1.8"><polyline points="9,18 15,12 9,6"/></svg>
+                <ChevronRight size={16} color={C.dim} strokeWidth={1.8} />
               </div>
             </Card>
           ))}
@@ -259,7 +273,7 @@ const MeetingsScreen = ({ go, setMeeting }) => {
       )}
 
       <div style={{ padding:16 }}>
-        <Btn v="ghost" style={{ width:'100%' }} onClick={load}>↻ Actualizar</Btn>
+        <Btn v="ghost" style={{ width:'100%' }} onClick={load}><RefreshCw size={15}/>Actualizar</Btn>
       </div>
     </div>
   );
@@ -388,7 +402,7 @@ const MeetingDetailScreen = ({ meeting, go, refreshMeeting }) => {
   return (
     <div style={{ flex:1, overflowY:'auto', paddingBottom:80 }}>
       <div style={{ padding:'48px 20px 20px', borderBottom:`1px solid ${C.border}` }}>
-        <button onClick={() => go('meetings')} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, marginBottom:16, display:'flex', alignItems:'center', gap:6 }}>← Volver</button>
+        <button onClick={() => go('meetings')} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, marginBottom:16, display:'flex', alignItems:'center', gap:6 }}><ArrowLeft size={14}/>Volver</button>
         <div style={{ display:'flex', gap:8, marginBottom:10 }}>
           <Badge v={m.status==='READY'?'success':m.status==='FAILED'?'danger':'warning'}>{m.status==='READY'?'Completa':m.status==='FAILED'?'Error':'Procesando'}</Badge>
         </div>
@@ -486,7 +500,7 @@ const TranscriptScreen = ({ meeting, go }) => {
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', paddingBottom:80 }}>
       <div style={{ padding:'48px 20px 0', borderBottom:`1px solid ${C.border}` }}>
-        <button onClick={() => go('meeting_detail')} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, marginBottom:16 }}>← Volver</button>
+        <button onClick={() => go('meeting_detail')} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, marginBottom:16, display:'inline-flex', alignItems:'center', gap:6 }}><ArrowLeft size={14}/>Volver</button>
         <h1 style={{ fontSize:18, fontWeight:800, fontFamily:"'Syne',sans-serif", marginBottom:16 }}>Transcripción</h1>
 
         <Label>SPEAKERS — Pulsa el lápiz para renombrar</Label>
@@ -498,7 +512,7 @@ const TranscriptScreen = ({ meeting, go }) => {
                 <div style={{ width:8, height:8, borderRadius:'50%', background:getSC(sp.label) }}/>
                 {sp.name || sp.label}
               </button>
-              <button onClick={() => { setEditing(sp.label); setEditName(sp.name || ''); }} style={{ background:'none', border:'none', cursor:'pointer', color:C.dim, padding:2, fontSize:12 }}>✏️</button>
+              <button onClick={() => { setEditing(sp.label); setEditName(sp.name || ''); }} style={{ background:'none', border:'none', cursor:'pointer', color:C.dim, padding:2, fontSize:12, display:'inline-flex' }}><Pencil size={13}/></button>
             </div>
           ))}
         </div>
@@ -508,7 +522,7 @@ const TranscriptScreen = ({ meeting, go }) => {
             <input value={editName} onChange={e => setEditName(e.target.value)} onKeyDown={e => e.key==='Enter' && saveSpeaker()} autoFocus placeholder={`Nombre para ${editing}`}
               style={{ flex:1, padding:'8px 12px', borderRadius:8, background:C.surfaceEl, border:`1px solid ${C.accent}`, color:C.text, fontSize:13, fontFamily:"'Instrument Sans',sans-serif", outline:'none' }}/>
             <Btn v="primary" size="sm" onClick={saveSpeaker} loading={saving}>Guardar</Btn>
-            <Btn v="ghost" size="sm" onClick={() => setEditing(null)}>✕</Btn>
+            <Btn v="ghost" size="sm" onClick={() => setEditing(null)}><X size={14}/></Btn>
           </div>
         )}
       </div>
@@ -585,7 +599,7 @@ const MinutesDetailScreen = ({ meeting, go }) => {
   return (
     <div style={{ flex:1, overflowY:'auto', paddingBottom:80 }}>
       <div style={{ padding:'48px 20px 20px', borderBottom:`1px solid ${C.border}` }}>
-        <button onClick={() => go('meeting_detail')} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, marginBottom:16 }}>← Volver</button>
+        <button onClick={() => go('meeting_detail')} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, marginBottom:16, display:'inline-flex', alignItems:'center', gap:6 }}><ArrowLeft size={14}/>Volver</button>
         <div style={{ display:'flex', gap:8, marginBottom:10 }}>
           <Badge v={data.status==='FINAL'?'success':'warning'}>{data.status==='FINAL'?'Acta Final':'Borrador'}</Badge>
         </div>
@@ -598,10 +612,10 @@ const MinutesDetailScreen = ({ meeting, go }) => {
           {data.status === 'DRAFT' && (
             editing
               ? <><Btn v="primary" size="sm" onClick={save} loading={saving}>Guardar</Btn><Btn v="ghost" size="sm" onClick={() => setEditing(false)}>Cancelar</Btn></>
-              : <Btn v="surface" size="sm" onClick={() => setEditing(true)}>✏️ Editar</Btn>
+              : <Btn v="surface" size="sm" onClick={() => setEditing(true)}><Pencil size={14}/>Editar</Btn>
           )}
-          <Btn v="ghost" size="sm" onClick={exportDrive} loading={exporting}>💾 Exportar a Drive</Btn>
-          {data.status === 'DRAFT' && !editing && <Btn v="success" size="sm" onClick={finalize} loading={saving}>✓ Finalizar Acta</Btn>}
+          <Btn v="ghost" size="sm" onClick={exportDrive} loading={exporting}><Save size={14}/>Exportar a Drive</Btn>
+          {data.status === 'DRAFT' && !editing && <Btn v="success" size="sm" onClick={finalize} loading={saving}><Check size={14}/>Finalizar Acta</Btn>}
         </div>
 
         {data.drive_export_id && <Badge v="success">✓ Guardado en Google Drive</Badge>}
@@ -662,7 +676,7 @@ const AssistantScreen = ({ meeting, go }) => {
   const [msgs,    setMsgs]    = useState([{ role:'assistant', content:`Hola! Soy tu asistente para la reunión "${meeting?.title || ''}". ¿Qué quieres saber sobre ella?` }]);
   const [input,   setInput]   = useState('');
   const [loading, setLoading] = useState(false);
-  const bottomRef = React.useRef(null);
+  const bottomRef = useRef(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }); }, [msgs]);
 
@@ -684,14 +698,14 @@ const AssistantScreen = ({ meeting, go }) => {
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', paddingBottom:80 }}>
       <div style={{ padding:'48px 20px 16px', borderBottom:`1px solid ${C.border}` }}>
-        <h1 style={{ fontSize:18, fontWeight:800, fontFamily:"'Syne',sans-serif" }}>🤖 Asistente IA</h1>
+        <h1 style={{ fontSize:18, fontWeight:800, fontFamily:"'Syne',sans-serif", display:'flex', alignItems:'center', gap:8 }}><Bot size={20}/>Asistente IA</h1>
         <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>{meeting?.title || 'Sin reunión seleccionada'}</div>
       </div>
 
       <div style={{ flex:1, overflowY:'auto', padding:16 }}>
         {msgs.map((m, i) => (
           <div key={i} style={{ display:'flex', gap:10, marginBottom:16, flexDirection:m.role==='user'?'row-reverse':'row', animation:'fadeIn .2s ease' }}>
-            {m.role==='assistant' && <div style={{ width:32, height:32, borderRadius:10, background:`linear-gradient(135deg,${C.purple}30,${C.accent}20)`, border:`1px solid ${C.purple}30`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>✨</div>}
+            {m.role==='assistant' && <div style={{ width:32, height:32, borderRadius:10, background:`linear-gradient(135deg,${C.purple}30,${C.accent}20)`, border:`1px solid ${C.purple}30`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><Sparkles size={16} color={C.purple}/></div>}
             <div style={{ maxWidth:'82%', padding:'10px 14px', borderRadius:m.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px', background:m.role==='user'?C.accent:C.surfaceEl, border:`1px solid ${m.role==='user'?'transparent':C.border}`, fontSize:14, color:C.text, lineHeight:1.65, whiteSpace:'pre-wrap' }}>
               {m.content}
             </div>
@@ -700,7 +714,7 @@ const AssistantScreen = ({ meeting, go }) => {
 
         {loading && (
           <div style={{ display:'flex', gap:10, marginBottom:16 }}>
-            <div style={{ width:32, height:32, borderRadius:10, background:`linear-gradient(135deg,${C.purple}30,${C.accent}20)`, display:'flex', alignItems:'center', justifyContent:'center' }}>✨</div>
+            <div style={{ width:32, height:32, borderRadius:10, background:`linear-gradient(135deg,${C.purple}30,${C.accent}20)`, display:'flex', alignItems:'center', justifyContent:'center' }}><Sparkles size={16} color={C.purple}/></div>
             <div style={{ padding:'12px 16px', borderRadius:'12px 12px 12px 4px', background:C.surfaceEl, border:`1px solid ${C.border}`, display:'flex', gap:6 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:7, height:7, borderRadius:'50%', background:C.purple, animation:`dbounce 1.2s ease-in-out ${i*.2}s infinite` }}/>)}
             </div>
@@ -732,7 +746,7 @@ const AssistantScreen = ({ meeting, go }) => {
         <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} }} placeholder="Pregunta sobre esta reunión..." rows={1}
           style={{ flex:1, padding:'10px 14px', borderRadius:12, background:C.surfaceEl, border:`1px solid ${input?C.accent+'60':C.border}`, color:C.text, fontSize:14, fontFamily:"'Instrument Sans',sans-serif", outline:'none', resize:'none', maxHeight:100 }}/>
         <button onClick={send} disabled={!input.trim()||loading||!meeting?.id} style={{ width:42, height:42, borderRadius:12, background:(input.trim()&&!loading&&meeting?.id)?C.accent:C.surfaceEl, border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .15s', flexShrink:0 }}>
-          {loading ? <Spinner size={16}/> : <span style={{ fontSize:16 }}>➤</span>}
+          {loading ? <Spinner size={16}/> : <Send size={16} color="#fff"/>}
         </button>
       </div>
     </div>
