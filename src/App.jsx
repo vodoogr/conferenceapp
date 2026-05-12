@@ -771,7 +771,9 @@ export default function App() {
       if (ok) setAuthed(true);
     }
     if (window.location.pathname === '/auth/error') {
-      alert('Error de autenticación. Inténtalo de nuevo.');
+      const params = new URLSearchParams(window.location.search);
+      const reason = params.get('reason') || 'desconocido';
+      alert(`Error de autenticación: ${reason}\n\nVerifica las variables de entorno en Vercel.`);
     }
   }, []);
 
