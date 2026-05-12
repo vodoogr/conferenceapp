@@ -56,15 +56,74 @@ const fmtMs   = (ms) => { const s = Math.floor(ms/1000), m = Math.floor(s/60); r
 
 // ── Global CSS ────────────────────────────────────────────
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+  
+  :root {
+    --bg: #030407;
+    --surface: #0A0C12;
+    --surface-el: #12151C;
+    --border: rgba(255,255,255,0.06);
+    --accent: #3B82F6;
+    --accent-glow: rgba(59,130,246,0.15);
+    --text: #F8FAFC;
+    --muted: #94A3B8;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: #0A0C10; color: #E6EDF3; font-family: 'Instrument Sans', sans-serif; -webkit-font-smoothing: antialiased; }
-  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #21262D; border-radius: 2px; }
-  @keyframes spin    { to { transform: rotate(360deg); } }
-  @keyframes fadeIn  { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes pulse   { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.05); opacity:.8; } }
-  @keyframes pring   { 0% { transform:scale(1); opacity:.8; } 100% { transform:scale(2); opacity:0; } }
-  @keyframes dbounce { 0%,80%,100% { transform:scale(.5); opacity:.3; } 40% { transform:scale(1); opacity:1; } }
+  
+  html, body { 
+    height: 100%; 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: 'Outfit', sans-serif; 
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Animaciones Premium */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes glassPulse {
+    0% { border-color: rgba(59,130,246,0.1); box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+    50% { border-color: rgba(59,130,246,0.3); box-shadow: 0 0 20px 0 rgba(59,130,246,0.1); }
+    100% { border-color: rgba(59,130,246,0.1); box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+  }
+
+  .premium-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+  }
+
+  .premium-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(59,130,246,0.3);
+    background: var(--surface-el);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+
+  /* Responsive Grid */
+  .grid-layout {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) { .grid-layout { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .grid-layout { grid-template-columns: repeat(3, 1fr); } }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
 `;
 
 // ── Micro components ──────────────────────────────────────
@@ -121,16 +180,16 @@ const Nav = ({ screen, go }) => {
   const tabs = [
     { id:'meetings', label:'Reuniones', Icon:ListChecks },
     { id:'recorder', label:'Grabar',    Icon:Mic },
-    { id:'assistant',label:'Asistente', Icon:MessageSquare },
+    { id:'assistant',label:'Asistente', Icon:Sparkles },
   ];
   return (
-    <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:C.surface, borderTop:`1px solid ${C.border}`, display:'flex', zIndex:100, paddingBottom:'env(safe-area-inset-bottom,8px)' }}>
+    <nav style={{ position:'fixed', bottom:24, left:'50%', transform:'translateX(-50%)', background:'rgba(10,12,18,0.8)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', zIndex:100, padding:'8px', borderRadius:24, backdropFilter:'blur(20px)', boxShadow:'0 20px 40px rgba(0,0,0,0.4)', gap:8, width:'calc(100% - 40px)', maxWidth:400 }}>
       {tabs.map(t => {
         const active = screen === t.id || (t.id==='meetings' && ['meeting_detail','transcript','minutes_detail'].includes(screen));
         const Icon = t.Icon;
         return (
-          <button key={t.id} onClick={() => go(t.id)} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:'10px 4px 6px', background:'none', border:'none', cursor:'pointer', color:active?C.accent:C.dim, transition:'color .15s', fontSize:10, fontWeight:600, fontFamily:"'Syne',sans-serif" }}>
-            <Icon size={20} strokeWidth={1.8} />
+          <button key={t.id} onClick={() => go(t.id)} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:'10px 0', background:active?C.accentGlow:'none', border:'none', cursor:'pointer', color:active?C.accent:C.muted, borderRadius:16, transition:'all 0.3s', fontSize:11, fontWeight:active?700:500, fontFamily:"'Outfit',sans-serif" }}>
+            <Icon size={20} strokeWidth={active?2.2:1.8} />
             {t.label}
           </button>
         );
@@ -218,24 +277,29 @@ const MeetingsScreen = ({ go, setMeeting }) => {
   };
 
   return (
-    <div style={{ flex:1, overflowY:'auto', paddingBottom:80 }}>
-      <div style={{ padding:'48px 20px 0' }}>
-        <h1 style={{ fontSize:26, fontWeight:800, fontFamily:"'Syne',sans-serif", marginBottom:16 }}>Mis Reuniones</h1>
+    <div style={{ flex:1, overflowY:'auto', paddingBottom:100 }} className="container">
+      <div style={{ padding:'60px 0 32px' }}>
+        <h1 style={{ fontSize:32, fontWeight:800, fontFamily:"'Outfit',sans-serif", marginBottom:24, letterSpacing:'-0.03em' }}>
+          Mis <span style={{ color:C.accent }}>Reuniones</span>
+        </h1>
 
-        {/* Stats */}
-        <div style={{ display:'flex', gap:10, marginBottom:16 }}>
-          {[['Total',stats.total,C.text],['Listas',stats.ready,C.success],['Procesando',stats.processing,C.warning]].map(([l,v,color]) => (
-            <div key={l} style={{ flex:1, background:C.surfaceEl, border:`1px solid ${C.border}`, borderRadius:10, padding:'10px 14px' }}>
-              <div style={{ fontSize:22, fontWeight:800, color, fontFamily:"'Syne',sans-serif" }}>{v}</div>
-              <div style={{ fontSize:11, color:C.muted }}>{l}</div>
+        {/* Stats Grid */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(100px, 1fr))', gap:12, marginBottom:24 }}>
+          {[['Total',stats.total,C.text, ListChecks],['Listas',stats.ready,C.success, Check],['En curso',stats.processing,C.warning, RefreshCw]].map(([l,v,color, Icon]) => (
+            <div key={l} className="premium-card" style={{ padding:'16px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+                <div style={{ fontSize:28, fontWeight:800, color, fontFamily:"'Outfit',sans-serif" }}>{v}</div>
+                <Icon size={18} color={color} opacity={0.6} />
+              </div>
+              <div style={{ fontSize:12, color:C.muted, fontWeight:600, letterSpacing:'0.05em' }}>{l.toUpperCase()}</div>
             </div>
           ))}
         </div>
 
         {/* Filters */}
-        <div style={{ display:'flex', gap:6, paddingBottom:16, overflowX:'auto' }}>
+        <div style={{ display:'flex', gap:8, paddingBottom:8, overflowX:'auto', scrollbarWidth:'none' }}>
           {['ALL','READY','PROCESSING','FAILED'].map(f => (
-            <button key={f} onClick={() => setFilter(f)} style={{ padding:'6px 14px', borderRadius:99, fontSize:12, fontWeight:600, fontFamily:"'Syne',sans-serif", whiteSpace:'nowrap', cursor:'pointer', background:filter===f?C.accent:C.surfaceEl, color:filter===f?'#fff':C.muted, border:`1px solid ${filter===f?C.accent:C.border}`, transition:'all .15s' }}>
+            <button key={f} onClick={() => setFilter(f)} style={{ padding:'8px 20px', borderRadius:12, fontSize:13, fontWeight:600, whiteSpace:'nowrap', cursor:'pointer', background:filter===f?C.accent:C.surfaceEl, color:filter===f?'#fff':C.muted, border:`1px solid ${filter===f?C.accent:'rgba(255,255,255,0.05)'}`, transition:'all 0.2s' }}>
               {f==='ALL'?'Todas':f==='READY'?'Listas':f==='PROCESSING'?'Procesando':'Con error'}
             </button>
           ))}
@@ -245,36 +309,38 @@ const MeetingsScreen = ({ go, setMeeting }) => {
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
       {loading ? (
-        <div style={{ display:'flex', justifyContent:'center', padding:40 }}><Spinner size={24}/></div>
+        <div style={{ display:'flex', justifyContent:'center', padding:60 }}><Spinner size={32}/></div>
       ) : data.length === 0 ? (
-        <div style={{ textAlign:'center', padding:'60px 20px', color:C.muted }}>
-          <div style={{ fontSize:40, marginBottom:12 }}>🎙️</div>
-          <p style={{ fontSize:15, fontWeight:600, color:C.text }}>Sin reuniones aún</p>
-          <p style={{ fontSize:13, marginTop:6 }}>Pulsa "Grabar" para empezar</p>
+        <div style={{ textAlign:'center', padding:'80px 20px', color:C.muted }}>
+          <div style={{ width:80, height:80, borderRadius:24, background:C.surfaceEl, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px' }}>
+            <Mic size={32} color={C.dim} />
+          </div>
+          <p style={{ fontSize:18, fontWeight:700, color:C.text, marginBottom:8 }}>Sin reuniones aún</p>
+          <p style={{ fontSize:14, maxWidth:240, margin:'0 auto' }}>Pulsa el botón de grabar en el menú inferior para comenzar.</p>
         </div>
       ) : (
-        <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:10 }}>
+        <div className="grid-layout">
           {data.map((m, i) => (
-            <Card key={m.id} onClick={() => { setMeeting(m); go('meeting_detail'); }} style={{ padding:16, animationDelay:`${i*.04}s` }}>
-              <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:'flex', gap:8, marginBottom:6 }}>{statusBadge(m.status)}</div>
-                  <h3 style={{ fontSize:15, fontWeight:700, fontFamily:"'Syne',sans-serif", overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:8 }}>{m.title}</h3>
-                  <div style={{ display:'flex', gap:12 }}>
-                    <span style={{ fontSize:12, color:C.muted }}>{fmtDate(m.recorded_at)}</span>
-                    {m.duration_sec && <span style={{ fontSize:12, color:C.muted }}>⏱ {fmtDuration(m.duration_sec)}</span>}
-                  </div>
-                </div>
-                <ChevronRight size={16} color={C.dim} strokeWidth={1.8} />
+            <div key={m.id} className="premium-card" onClick={() => { setMeeting(m); go('meeting_detail'); }} style={{ animation:`slideUp 0.4s ease ${i*0.05}s both`, cursor:'pointer' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:16 }}>
+                {statusBadge(m.status)}
+                <span style={{ fontSize:12, color:C.muted, fontWeight:500 }}>{fmtDate(m.recorded_at)}</span>
               </div>
-            </Card>
+              <h3 style={{ fontSize:17, fontWeight:700, marginBottom:12, lineHeight:1.4 }}>{m.title}</h3>
+              <div style={{ display:'flex', alignItems:'center', gap:12, color:C.muted, fontSize:13 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                  <RefreshCw size={14} />
+                  <span>{m.duration_sec ? fmtDuration(m.duration_sec) : '--:--'}</span>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                  <MessageSquare size={14} />
+                  <span>Acta</span>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
-
-      <div style={{ padding:16 }}>
-        <Btn v="ghost" style={{ width:'100%' }} onClick={load}><RefreshCw size={15}/>Actualizar</Btn>
-      </div>
     </div>
   );
 };
