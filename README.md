@@ -173,3 +173,18 @@ Asistente IA      → POST /api/assistant/chat
 | Reuniones >30min pueden timeout | Vercel 300s limit | Vercel Background Functions o queue |
 | iOS Safari puede fallar grabación | WebM no soportado | RecordRTC con WAV fallback |
 | Sin notificación push al terminar | Sin WebSocket | Supabase Realtime en V2 |
+
+---
+
+## Solución de Problemas (FAQ)
+
+### Error 403: access_denied
+Si al intentar loguearte ves este error de Google, significa que tu proyecto en Google Cloud está en modo **"Testing"**. 
+
+**Opción A (Seguir en pruebas):**
+1. Ve a [Google Cloud Console](https://console.cloud.google.com/) -> **OAuth consent screen**.
+2. En **Test users**, añade tu email.
+
+**Opción B (Lanzar a producción):**
+1. En **OAuth consent screen**, pulsa el botón **PUBLISH APP**.
+2. Esto permitirá que cualquier usuario entre sin ser añadido manualmente como tester.
