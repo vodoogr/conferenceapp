@@ -158,7 +158,7 @@ export const upload = {
 export const process = {
   // Procesar reunión con audio base64 (para audios <10MB o sin Drive)
   run: (meetingId, { audioBase64, mimeType, driveFileId }) =>
-    apiFetch(`/api/process/${meetingId}`, {
+    apiFetch(`/api/process?meetingId=${meetingId}`, {
       method: 'POST',
       body:   JSON.stringify({ audioBase64, mimeType, driveFileId }),
     }),
@@ -190,10 +190,10 @@ export const process = {
 
 export const transcriptions = {
   get: (meetingId) =>
-    apiFetch(`/api/transcriptions/${meetingId}`),
+    apiFetch(`/api/transcriptions?meetingId=${meetingId}`),
 
   renameSpeaker: (meetingId, { label, name }) =>
-    apiFetch(`/api/transcriptions/${meetingId}`, {
+    apiFetch(`/api/transcriptions?meetingId=${meetingId}`, {
       method: 'PATCH',
       body:   JSON.stringify({ label, name }),
     }),
@@ -205,22 +205,22 @@ export const transcriptions = {
 
 export const minutesApi = {
   get: (meetingId) =>
-    apiFetch(`/api/minutes/${meetingId}`),
+    apiFetch(`/api/minutes?meetingId=${meetingId}`),
 
   update: (meetingId, updates) =>
-    apiFetch(`/api/minutes/${meetingId}`, {
+    apiFetch(`/api/minutes?meetingId=${meetingId}`, {
       method: 'PATCH',
       body:   JSON.stringify(updates),
     }),
 
   finalize: (meetingId) =>
-    apiFetch(`/api/minutes/${meetingId}`, {
+    apiFetch(`/api/minutes?meetingId=${meetingId}`, {
       method: 'PATCH',
       body:   JSON.stringify({ status: 'FINAL' }),
     }),
 
   exportToDrive: (meetingId) =>
-    apiFetch(`/api/minutes/${meetingId}/export`, {
+    apiFetch(`/api/minutes?meetingId=${meetingId}&action=export`, {
       method: 'POST',
     }),
 };
