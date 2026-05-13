@@ -18,6 +18,8 @@ import {
   Send,
   Sparkles,
   X,
+  Edit,
+  Trash2,
 } from 'lucide-react';
 import { auth, meetings, transcriptions, minutesApi, assistant, process } from './utils/api.js';
 import { useRecorder } from './hooks/useRecorder.js';
