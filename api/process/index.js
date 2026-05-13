@@ -14,44 +14,40 @@ export default async function handler(req, res) {
     // 1. Marcar como PROCESSING
     await sql('UPDATE meetings SET status = $1 WHERE id = $2 AND user_id = $3', ['PROCESSING', meetingId, user.sub]);
 
-    // Responder inmediatamente para no hacer timeout
-    jsonResponse(res, { success: true, status: 'PROCESSING' });
-
-    // --- AQUI IRÍA LA LLAMADA REAL A GEMINI ---
-    // Como esto es un entorno serverless, la llamada larga debería ir en un Background Function
-    // o procesarse de forma asíncrona. Por ahora simularemos que Gemini tarda 5 segundos
-    // y luego actualiza a READY.
+    // --- PROCESAMIENTO SIMULADO (Síncrono para Vercel Serverless) ---
+    // En producción con audios largos, esto requeriría Vercel Background Functions o Inngest.
     
-    setTimeout(async () => {
-      try {
-        // Simulando transcripción
-        const dummySegments = JSON.stringify([{
-          id: '1', start_ms: 0, end_ms: 5000,
-          speaker_label: 'S1', speaker_name: 'Speaker 1',
-          text: 'Hola, esta es una transcripción de prueba generada automáticamente.'
-        }]);
-        const dummySpeakers = JSON.stringify([{ label: 'S1', name: 'Speaker 1' }]);
+    // Simulando una pequeña pausa (1 segundo) para que se vea la UI de procesando
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-        await sql(
-          'INSERT INTO transcriptions (meeting_id, segments, speakers) VALUES ($1, $2, $3)',
-          [meetingId, dummySegments, dummySpeakers]
-        );
+    // Simulando transcripción
+    const dummySegments = JSON.stringify([{
+      id: '1', start_ms: 0, end_ms: 5000,
+      speaker_label: 'S1', speaker_name: 'Speaker 1',
+      text: 'Hola, esta es una transcripción de prueba generada automáticamente. El sistema de procesamiento ya está funcionando perfectamente en el servidor.'
+    }]);
+    const dummySpeakers = JSON.stringify([{ label: 'S1', name: 'Speaker 1' }]);
 
-        // Simulando Acta
-        await sql(
-          'INSERT INTO minutes (meeting_id, title, summary, status) VALUES ($1, $2, $3, $4)',
-          [meetingId, 'Acta de Reunión (Demo)', 'Esta reunión fue procesada correctamente en modo demo.', 'DRAFT']
-        );
+    await sql(
+      'INSERT INTO transcriptions (meeting_id, segments, speakers) VALUES ($1, $2, $3)',
+      [meetingId, dummySegments, dummySpeakers]
+    );
 
-        // Marcar como READY
-        await sql('UPDATE meetings SET status = $1, duration_sec = $2 WHERE id = $3', ['READY', 5, meetingId]);
-      } catch (err) {
-        console.error('Error in background processing:', err);
-        await sql('UPDATE meetings SET status = $1, error_message = $2 WHERE id = $3', ['FAILED', err.message, meetingId]);
-      }
-    }, 5000);
+    // Simulando Acta
+    await sql(
+      'INSERT INTO minutes (meeting_id, title, summary, status) VALUES ($1, $2, $3, $4)',
+      [meetingId, 'Acta de Reunión (Demo)', 'Esta reunión fue procesada correctamente y el servidor guardó los datos en NeonDB.', 'DRAFT']
+    );
+
+    // Marcar como READY
+    await sql('UPDATE meetings SET status = $1, duration_sec = $2 WHERE id = $3', ['READY', 5, meetingId]);
+
+    // Responder que ya está listo
+    return jsonResponse(res, { success: true, status: 'READY' });
 
   } catch (err) {
+    console.error('Process error:', err);
     return errorResponse(res, err, err.message.includes('Unauthorized') ? 401 : 500);
   }
 }
+
