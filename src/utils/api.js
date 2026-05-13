@@ -90,7 +90,7 @@ export const meetings = {
     return apiFetch(`/api/meetings?${params}`);
   },
 
-  get: (id) => apiFetch(`/api/meetings/${id}`),
+  get: (id) => apiFetch(`/api/meetings?id=${id}`),
 
   create: ({ title, language = 'es-ES' }) =>
     apiFetch('/api/meetings', {
@@ -99,13 +99,13 @@ export const meetings = {
     }),
 
   update: (id, updates) =>
-    apiFetch(`/api/meetings/${id}`, {
+    apiFetch(`/api/meetings?id=${id}`, {
       method: 'PATCH',
       body:   JSON.stringify(updates),
     }),
 
   delete: (id) =>
-    apiFetch(`/api/meetings/${id}`, { method: 'DELETE' }),
+    apiFetch(`/api/meetings?id=${id}`, { method: 'DELETE' }),
 };
 
 // ============================================================

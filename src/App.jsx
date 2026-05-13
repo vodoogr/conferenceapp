@@ -252,6 +252,8 @@ const MeetingsScreen = ({ go, setMeeting }) => {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
   const [filter,  setFilter]  = useState('ALL');
+  const [editingId, setEditingId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -263,6 +265,30 @@ const MeetingsScreen = ({ go, setMeeting }) => {
   }, [filter]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm('¿Seguro que quieres borrar esta reunión?')) return;
+    try {
+      await meetings.delete(id);
+      setData(prev => prev.filter(m => m.id !== id));
+    } catch (e) { alert('Error al borrar: ' + e.message); }
+  };
+
+  const handleEdit = (e, m) => {
+    e.stopPropagation();
+    setEditingId(m.id);
+    setEditTitle(m.title);
+  };
+
+  const saveEdit = async (e, id) => {
+    e.stopPropagation();
+    try {
+      const res = await meetings.update(id, { title: editTitle });
+      setData(prev => prev.map(m => m.id === id ? { ...m, title: res.data.title } : m));
+      setEditingId(null);
+    } catch (e) { alert('Error al editar: ' + e.message); }
+  };
 
   const stats = {
     total:      data.length,
@@ -321,12 +347,27 @@ const MeetingsScreen = ({ go, setMeeting }) => {
       ) : (
         <div className="grid-layout">
           {data.map((m, i) => (
-            <div key={m.id} className="premium-card" onClick={() => { setMeeting(m); go('meeting_detail'); }} style={{ animation:`slideUp 0.4s ease ${i*0.05}s both`, cursor:'pointer' }}>
+            <div key={m.id} className="premium-card" onClick={() => { if(editingId !== m.id) { setMeeting(m); go('meeting_detail'); } }} style={{ animation:`slideUp 0.4s ease ${i*0.05}s both`, cursor:'pointer', position: 'relative' }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:16 }}>
                 {statusBadge(m.status)}
-                <span style={{ fontSize:12, color:C.muted, fontWeight:500 }}>{fmtDate(m.recorded_at)}</span>
+                
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button onClick={(e) => handleEdit(e, m)} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer' }}><Edit size={16} /></button>
+                  <button onClick={(e) => handleDelete(e, m.id)} style={{ background:'none', border:'none', color:C.danger, cursor:'pointer' }}><Trash2 size={16} /></button>
+                </div>
               </div>
-              <h3 style={{ fontSize:17, fontWeight:700, marginBottom:12, lineHeight:1.4 }}>{m.title}</h3>
+
+              {editingId === m.id ? (
+                <div style={{ display:'flex', gap:8, marginBottom:12 }} onClick={e => e.stopPropagation()}>
+                  <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} style={{ flex:1, padding:'8px 12px', borderRadius:8, border:`1px solid ${C.border}`, background:C.surfaceEl, color:'#fff' }} autoFocus />
+                  <button onClick={(e) => saveEdit(e, m.id)} style={{ padding:'8px 12px', background:C.success, color:'#000', border:'none', borderRadius:8, fontWeight:700, cursor:'pointer' }}>OK</button>
+                  <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} style={{ padding:'8px 12px', background:C.surfaceEl, color:C.muted, border:'none', borderRadius:8, cursor:'pointer' }}>X</button>
+                </div>
+              ) : (
+                <h3 style={{ fontSize:17, fontWeight:700, marginBottom:12, lineHeight:1.4 }}>{m.title}</h3>
+              )}
+
               <div style={{ display:'flex', alignItems:'center', gap:12, color:C.muted, fontSize:13 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:4 }}>
                   <RefreshCw size={14} />

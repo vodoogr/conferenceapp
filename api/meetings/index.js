@@ -28,7 +28,25 @@ export default async function handler(req, res) {
       return jsonResponse(res, { data: row[0] });
     }
 
-    res.setHeader('Allow', ['GET', 'POST']);
+    if (req.method === 'DELETE') {
+      const { id } = req.query;
+      if (!id) return errorResponse(res, new Error('ID requerido'), 400);
+      await sql('DELETE FROM meetings WHERE id = $1 AND user_id = $2', [id, user.sub]);
+      return jsonResponse(res, { success: true });
+    }
+
+    if (req.method === 'PATCH') {
+      const { id } = req.query;
+      const { title } = req.body;
+      if (!id) return errorResponse(res, new Error('ID requerido'), 400);
+      const row = await sql(
+        'UPDATE meetings SET title = $1 WHERE id = $2 AND user_id = $3 RETURNING *',
+        [title, id, user.sub]
+      );
+      return jsonResponse(res, { data: row[0] });
+    }
+
+    res.setHeader('Allow', ['GET', 'POST', 'DELETE', 'PATCH']);
     return errorResponse(res, new Error(`Method ${req.method} Not Allowed`), 405);
   } catch (err) {
     return errorResponse(res, err, err.message.includes('Unauthorized') ? 401 : 500);
