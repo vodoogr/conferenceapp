@@ -22,8 +22,8 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const { title, language = 'es-ES' } = req.body;
       const row = await sql(
-        'INSERT INTO meetings (user_id, title, status, language) VALUES ($1, $2, $3, $4) RETURNING *',
-        [user.sub, title || 'Nueva Reunión', 'RECORDING', language]
+        'INSERT INTO meetings (user_id, title, status, language, tenant_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [user.sub, title || 'Nueva Reunión', 'RECORDING', language, user.sub]
       );
       return jsonResponse(res, { data: row[0] });
     }
