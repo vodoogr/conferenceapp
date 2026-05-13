@@ -1,5 +1,6 @@
 import { sql } from '../../lib/db.js';
 import { verifyAuth, jsonResponse, errorResponse } from '../../lib/auth.js';
+import { processAudioWithGemini } from '../../lib/gemini.js';
 
 export default async function handler(req, res) {
   try {
@@ -11,42 +12,44 @@ export default async function handler(req, res) {
       return errorResponse(res, new Error('Method Not Allowed'), 405);
     }
 
+    const { audioBase64, mimeType } = req.body;
+    if (!audioBase64) return errorResponse(res, new Error('Falta el audioBase64'), 400);
+
     // 1. Marcar como PROCESSING
     await sql('UPDATE meetings SET status = $1 WHERE id = $2 AND user_id = $3', ['PROCESSING', meetingId, user.sub]);
 
-    // --- PROCESAMIENTO SIMULADO (Síncrono para Vercel Serverless) ---
-    // En producción con audios largos, esto requeriría Vercel Background Functions o Inngest.
+    // --- PROCESAMIENTO REAL CON GEMINI ---
+    console.log(`Enviando audio a Gemini para la reunión ${meetingId}...`);
     
-    // Simulando una pequeña pausa (1 segundo) para que se vea la UI de procesando
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Llamar a Gemini (Esto puede tardar hasta 60s)
+    const result = await processAudioWithGemini(audioBase64, mimeType);
 
-    // Simulando transcripción
-    const dummySegments = JSON.stringify([{
-      id: '1', start_ms: 0, end_ms: 5000,
-      speaker_label: 'S1', speaker_name: 'Speaker 1',
-      text: 'Hola, esta es una transcripción de prueba generada automáticamente. El sistema de procesamiento ya está funcionando perfectamente en el servidor.'
-    }]);
-    const dummySpeakers = JSON.stringify([{ label: 'S1', name: 'Speaker 1' }]);
-
+    // 2. Guardar Transcripción
     await sql(
       'INSERT INTO transcriptions (meeting_id, segments, speakers) VALUES ($1, $2, $3)',
-      [meetingId, dummySegments, dummySpeakers]
+      [meetingId, JSON.stringify(result.transcription || []), JSON.stringify(result.speakers || [])]
     );
 
-    // Simulando Acta
+    // 3. Guardar Acta
+    const min = result.minutes || {};
     await sql(
-      'INSERT INTO minutes (meeting_id, title, summary, status) VALUES ($1, $2, $3, $4)',
-      [meetingId, 'Acta de Reunión (Demo)', 'Esta reunión fue procesada correctamente y el servidor guardó los datos en NeonDB.', 'DRAFT']
+      'INSERT INTO minutes (meeting_id, title, summary, decisions, action_items, status) VALUES ($1, $2, $3, $4, $5, $6)',
+      [meetingId, min.title || 'Acta sin título', min.summary || '', JSON.stringify(min.decisions || []), JSON.stringify(min.action_items || []), 'DRAFT']
     );
 
-    // Marcar como READY
-    await sql('UPDATE meetings SET status = $1, duration_sec = $2 WHERE id = $3', ['READY', 5, meetingId]);
+    // 4. Marcar como READY y actualizar título
+    await sql('UPDATE meetings SET status = $1, title = $2 WHERE id = $3', ['READY', min.title || 'Reunión Procesada', meetingId]);
 
-    // Responder que ya está listo
+    console.log(`Reunión ${meetingId} procesada con éxito por Gemini.`);
     return jsonResponse(res, { success: true, status: 'READY' });
 
   } catch (err) {
     console.error('Process error:', err);
+    // Si falla, marcamos como FAILED
+    const { meetingId } = req.query;
+    if (meetingId) {
+      await sql('UPDATE meetings SET status = $1, error_message = $2 WHERE id = $3', ['FAILED', err.message, meetingId]);
+    }
     return errorResponse(res, err, err.message.includes('Unauthorized') ? 401 : 500);
   }
 }
