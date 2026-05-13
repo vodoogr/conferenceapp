@@ -6,7 +6,16 @@ export default async function handler(req, res) {
     const user = await verifyAuth(req);
 
     if (req.method === 'GET') {
-      const { status } = req.query;
+      const { status, id } = req.query;
+      
+      // Si piden un ID específico
+      if (id) {
+        const rows = await sql('SELECT * FROM meetings WHERE id = $1 AND user_id = $2', [id, user.sub]);
+        if (rows.length === 0) return errorResponse(res, new Error('Not found'), 404);
+        return jsonResponse(res, { data: rows[0] });
+      }
+
+      // Si piden la lista completa (con o sin filtro de status)
       let queryText = 'SELECT * FROM meetings WHERE user_id = $1 ORDER BY recorded_at DESC';
       let params = [user.sub];
 
